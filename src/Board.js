@@ -3,6 +3,7 @@ import Dragula from 'dragula';
 import 'dragula/dist/dragula.css';
 import Swimlane from './Swimlane';
 import './Board.css';
+import DragulaContainer from './DragulaContainer';
 
 export default class Board extends React.Component {
   constructor(props) {
@@ -59,6 +60,7 @@ export default class Board extends React.Component {
   render() {
     return (
       <div className="Board">
+	<DragulaContainer refs={this.swimlanes} />
         <div className="container-fluid">
           <div className="row">
             <div className="col-md-4">
