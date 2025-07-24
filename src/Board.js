@@ -53,14 +53,69 @@ export default class Board extends React.Component {
   }
   renderSwimlane(name, clients, ref) {
     return (
-      <Swimlane name={name} clients={clients} dragulaRef={ref}/>
+      <Swimlane name={name} clients={clients} dragulaRef={ref} getCardColorClass={this.getCardColorClass}/>
     );
   }
+
+  updateClientStatus = (clientId, newStatus) => {
+	  this.setState(prevState => {
+		  let clientToMove = null
+		  let updatedClients = {...prevState.clients}
+
+		  Object.keys(updatedClients).forEach(status => {
+			  const clientIndex = updatedClients[status].findIndex(client => client.id === clientId)
+			  if (clientIndex !== -1) {
+				  clientToMove = {...updatedClients[status][clientIndex], status: newStatus}
+				  updatedClients[status] = updatedClients[status].filter(client => client.id !== clientId);
+			  }
+		  });
+
+		  if (clientToMove) {
+			  const targetLane = this.getSwimLaneName(newStatus)
+			  updatedClients[targetLane] = [...updatedClients[targetLane], clientToMove]
+		  }
+
+		  return { clients: updatedClients };
+	  });
+  }
+
+
+  getSwimLaneName = (status) => {
+	  const mapping = {
+		'backlog': 'backlog',
+		'in-progress': 'inProgress',
+		'complete': 'complete'
+	  };
+	  return mapping[status] || 'backlog'
+  }
+
+  getStatusFromRef = (ref) => {
+	  if (ref === this.swimlanes.backlog.current) return 'backlog'
+	  if (ref === this.swimlanes.inProgress.current) return 'in-progress'
+	  if (ref === this.swimlanes.complete.current) return 'complete'
+
+	  return 'backlog'
+  }
+
+  getCardColorClass = (status) => {
+    const colorMap = {
+      'backlog': 'Card-grey',
+      'in-progress': 'Card-blue', 
+      'complete': 'Card-green'
+    };
+    return colorMap[status] || 'Card-grey';
+  }
+
+
 
   render() {
     return (
       <div className="Board">
-	<DragulaContainer refs={this.swimlanes} />
+	<DragulaContainer 
+	    refs={this.swimlanes}  
+	    onUpdateClientStatus={this.updateClientStatus}
+	    getStatusFromRef={this.getStatusFromRef}
+	/>
         <div className="container-fluid">
           <div className="row">
             <div className="col-md-4">

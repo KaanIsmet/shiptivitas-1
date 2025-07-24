@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import dragula from 'dragula';
 
-export default function DragulaContainer({ refs }) {
+export default function DragulaContainer({ refs, onUpdateClientStatus, getStatusFromRef }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       const containers = Object.values(refs)
@@ -9,8 +9,8 @@ export default function DragulaContainer({ refs }) {
         .filter(container => container !== null);
       
       if (containers.length > 0) {
-	let newStatus;
         const drake = dragula(containers, {
+	  revertOnSpill: true,	
           moves: function (el, container, handle) {
             return true;
           },
@@ -23,7 +23,18 @@ export default function DragulaContainer({ refs }) {
 
         drake.on('drop', function (el, target, source, sibling) {
           console.log('Card dropped:', el, 'from:', source, 'to:', target);
-	  
+	  if (target !== source) {
+		  const clientId = el.getAttribute('data-client-id')
+
+		  const newStatus = getStatusFromRef(target)
+
+		  if (clientId && newStatus) {
+
+			  drake.cancel(true);	
+
+			  onUpdateClientStatus(clientId, newStatus);
+		  }
+	  }
         });
 
         return () => {
@@ -35,7 +46,7 @@ export default function DragulaContainer({ refs }) {
     return () => {
       clearTimeout(timer);
     };
-  }, [refs]);
+  }, [refs, onUpdateClientStatus, getStatusFromRef]);
 
   return null;
 }
